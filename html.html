@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gesture → Text → Speech</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 700px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .card h2 {
+      margin-top: 0;
+      color: #444;
+    }
+    video {
+      width: 100%;
+      border-radius: 8px;
+      background: #000;
+    }
+    input, textarea, button {
+      margin-top: 10px;
+      padding: 10px;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      background: #4cafef;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #1c82d1;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #f9f9f9;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .actions button {
+      width: auto;
+      margin-left: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎥 Gesture → Text → Speech</h1>
+
+  <!-- Gesture Input Section -->
+  <div class="card">
+    <h2>Upload / Play Gesture Video</h2>
+    <input type="file" id="videoUpload" accept="video/*" />
+    <video id="gestureVideo" controls></video>
+    <p style="color: gray; font-size: 0.9rem;">(Here backend model will detect gesture → convert to text)</p>
+  </div>
+
+  <!-- Recognized Text Section -->
+  <div class="card">
+    <h2>Recognized Text</h2>
+    <textarea id="recognizedText" rows="3">Hello! This is demo text from gesture recognition.</textarea>
+    <button onclick="convertToSpeech()">🔊 Convert to Speech</button>
+  </div>
+
+  <!-- Audio Library -->
+  <div class="card">
+    <h2>Audio Library</h2>
+    <input type="file" id="audioUpload" accept="audio/*" multiple />
+    <ul id="audioList"></ul>
+  </div>
+
+  <script>
+    const videoUpload = document.getElementById("videoUpload");
+    const gestureVideo = document.getElementById("gestureVideo");
+    const audioUpload = document.getElementById("audioUpload");
+    const audioList = document.getElementById("audioList");
+    const recognizedText = document.getElementById("recognizedText");
+
+    // Load selected video
+    videoUpload.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        gestureVideo.src = url;
+      }
+    });
+
+    // Convert text to speech
+    function convertToSpeech() {
+      const text = recognizedText.value;
+      if (!text.trim()) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+
+      // Save to audio library (just as text ref for now)
+      const li = document.createElement("li");
+      li.textContent = text;
+
+      // Actions (Play Again / Delete)
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const playBtn = document.createElement("button");
+      playBtn.textContent = "Play";
+      playBtn.onclick = () => speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "❌";
+      delBtn.onclick = () => li.remove();
+
+      actions.appendChild(playBtn);
+      actions.appendChild(delBtn);
+      li.appendChild(actions);
+
+      audioList.appendChild(li);
+    }
+
+    // Add uploaded audio files to library
+    audioUpload.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files);
+      files.forEach((file) => {
+        const li = document.createElement("li");
+        li.textContent = file.name;
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const playBtn = document.createElement("button");
+        playBtn.textContent = "Play";
+        playBtn.onclick = () => {
+          const audio = new Audio(URL.createObjectURL(file));
+          audio.play();
+        };
+
+        actions.appendChild(playBtn);
+        li.appendChild(actions);
+        audioList.appendChild(li);
+      });
+    });
+  </script>
+</body>
+</html>
